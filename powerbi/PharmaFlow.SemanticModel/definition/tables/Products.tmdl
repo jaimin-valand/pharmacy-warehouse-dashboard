@@ -1,0 +1,76 @@
+table Products
+	lineageTag: 465697d6-2a8d-5324-9240-9962792c31fe
+
+	column 'Product ID'
+		dataType: string
+		isHidden
+		lineageTag: 3d18ff93-4db3-5d56-b744-1679ec0c97ec
+		summarizeBy: none
+		sourceColumn: Product ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: e063ea41-0d82-5d6e-a3f7-89eac0c20243
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 977828a4-4bda-5808-86d3-c953a0967a96
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Unit
+		dataType: string
+		lineageTag: 55f23659-e8a3-5f55-992a-0c46f07ed9f6
+		summarizeBy: none
+		sourceColumn: Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Unit Cost'
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: 86ef97ed-b8e1-5512-94e6-addd51a2cbc6
+		summarizeBy: none
+		sourceColumn: Unit Cost
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Supplier ID'
+		dataType: string
+		isHidden
+		lineageTag: 416ee4e2-cf27-5aa7-9248-bb02c2d0044c
+		summarizeBy: none
+		sourceColumn: Supplier ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Reorder Level'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 3fcdb893-08df-50fd-a7c1-e3ff13231500
+		summarizeBy: none
+		sourceColumn: Reorder Level
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Products = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(Binary.Decompress(Binary.FromText("jZRfb5swFMXf+yl4WZ/uImxDII9Zqm6VNjVa1b1WDtykloyNbFM1/fS7xC5JtzXdC0LA79w/55je2XZowoNqoU+3RnYIjQy4s24Pg1HhcHlorA/gh77XCt0IOLSupVuNT6gv1t8+5zmDZWefVaO0ViYr8zzrdrA0QW2UDarxpNv7QaOHfMZquLtfE8RBVHXkOSxfVHh0tts3JMDLvwSC3GgMIy944gWwRR55ASvcSo3PH1bnVaILYEUV6QJ+YNha1x3pKyU3GPC0bv7adwmCLSJZwo0hZeJ2WrqdMpgxEri5Pwo8Kak9MD4rEj4HXvCIz2EZrHuSPsgwjn0ovZKuVZYeNgNpnjTAWFKogFdp8IoWr22r+rF0eRanahGvgc1TAzV8t166IMfBz9OLRDNqX0R6Abcd9k6+WI2p+a80i7PK0OQ0kdRvjBdH43nsn+WwlibYV5Hi3yInOygn87mIJtBaVhiUUy9x/aPCT/S9cpKWu88us6XW6Hb702nKKQWiirtgFCupN0OQndWZMo8UJ/eOUHrrgR8bolTMWVQS8GVo0VujWvxfJTGrp3wIEYPJCtqOkw3GnlI015Kicpld0+l7Y1AxpUMsokHU281moPO9RUOrPUtXUzhEkcaYU4gbPcKyyXaoM/bpD3zYkLFsVpRTNlidTKngl6K26esrMZ6Jw6FIjzwp3I0/FOzQUHlvt4H0D/4eI1KniNRwbbVqMtmoNkb8HZmTacSUEsGTvQtY9upZbsaon016xY9/iHk0gudwa1ppPFIuaZUfhJRPkeBcXPwG", BinaryEncoding.Base64), Compression.Deflate), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Renamed = Table.RenameColumns(Promoted, {{"product_id", "Product ID"}, {"product_name", "Product"}, {"category", "Category"}, {"unit", "Unit"}, {"unit_cost", "Unit Cost"}, {"supplier_id", "Supplier ID"}, {"reorder_level", "Reorder Level"}}),
+				    Typed = Table.TransformColumnTypes(Renamed, {{"Product ID", type text}, {"Product", type text}, {"Category", type text}, {"Unit", type text}, {"Unit Cost", type number}, {"Supplier ID", type text}, {"Reorder Level", Int64.Type}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,288 @@
+table Inventory
+	lineageTag: cf96608c-16d8-50e8-8eb0-d7ab696317e4
+
+	measure 'On Hand Units' =
+			SUM ( Inventory[Quantity] )
+		formatString: #,0
+		displayFolder: Stock
+		lineageTag: f33bf19b-37d4-5b93-b311-f4594b843ad9
+
+	measure 'Usable Stock' =
+			SUM ( Inventory[Usable Quantity] )
+		formatString: #,0
+		displayFolder: Stock
+		lineageTag: 49a36040-6695-52e4-a5c4-6fda54f7115d
+
+	measure 'Total Stock Value' =
+			SUM ( Inventory[Stock Value] )
+		formatString: $#,0
+		displayFolder: Stock
+		lineageTag: cb2703e7-d18d-511e-bbdd-fbd9e5f05704
+
+	measure 'Warehouses In Scope' =
+			CALCULATE (
+			    DISTINCTCOUNT ( Inventory[Warehouse ID] ),
+			    REMOVEFILTERS ( Products[Product] ),
+			    REMOVEFILTERS ( Products[Product ID] )
+			)
+		formatString: 0
+		displayFolder: Replenishment
+		lineageTag: d13b7459-dc56-5d29-85f3-42e367fa128f
+
+	measure 'Reorder Point' =
+			-- Reorder level is set per warehouse, so scale it by the warehouses in scope
+			IF (
+			    NOT ISBLANK ( [On Hand Units] ),
+			    SUMX ( VALUES ( Products[Product ID] ), CALCULATE ( MAX ( Products[Reorder Level] ) ) ) * [Warehouses In Scope]
+			)
+		formatString: #,0
+		displayFolder: Replenishment
+		lineageTag: 80ae11cd-de70-5058-a77b-05ef2d521ef3
+
+	measure 'Below Reorder By' =
+			-- Expired batches can't be dispensed, so only usable stock counts
+			SUMX (
+			    VALUES ( Products[Product ID] ),
+			    VAR _rp = [Reorder Point]
+			    VAR _usable = [Usable Stock] + 0
+			    RETURN IF ( NOT ISBLANK ( [On Hand Units] ) && _usable <= _rp, _rp - _usable )
+			)
+		formatString: #,0
+		displayFolder: Replenishment
+		lineageTag: 99a83cf4-a551-51d6-95bf-3888138e7e78
+
+	measure 'Stock-out Risk' =
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( Products[Product ID] ),
+			        NOT ISBLANK ( [On Hand Units] ) && [Usable Stock] + 0 <= [Reorder Point]
+			    )
+			) + 0
+		formatString: 0
+		displayFolder: Replenishment
+		lineageTag: 7e45b1bf-f7b0-57aa-9ae7-2ef59a325b78
+
+	measure 'Cost to Restock' =
+			SUMX (
+			    VALUES ( Products[Product ID] ),
+			    VAR _rp = [Reorder Point]
+			    VAR _usable = [Usable Stock] + 0
+			    RETURN IF ( NOT ISBLANK ( [On Hand Units] ) && _usable <= _rp, ( _rp - _usable ) * CALCULATE ( MAX ( Products[Unit Cost] ) ) )
+			) + 0
+		formatString: $#,0
+		displayFolder: Replenishment
+		lineageTag: 25363037-2f95-51cf-aad4-4394d33361a8
+
+	measure 'On Hand (Alert)' =
+			IF ( NOT ISBLANK ( [Below Reorder By] ), [On Hand Units] )
+		formatString: #,0
+		displayFolder: Replenishment
+		lineageTag: 88972384-0caa-5282-b49b-6f217d10dd58
+
+	measure 'Usable Stock (Alert)' =
+			IF ( NOT ISBLANK ( [Below Reorder By] ), [Usable Stock] + 0 )
+		formatString: #,0
+		displayFolder: Replenishment
+		lineageTag: b5814c2d-8a7b-525b-9c31-e8814a12325c
+
+	measure 'Reorder Point (Alert)' =
+			IF ( NOT ISBLANK ( [Below Reorder By] ), [Reorder Point] )
+		formatString: #,0
+		displayFolder: Replenishment
+		lineageTag: bac72207-1649-51e2-94e2-56a449890d47
+
+	measure 'Restock Cost (Alert)' =
+			IF ( NOT ISBLANK ( [Below Reorder By] ), [Cost to Restock] )
+		formatString: $#,0
+		displayFolder: Replenishment
+		lineageTag: 7b283d4e-a0f6-58d3-acdf-7340366f0679
+
+	measure 'Batches Expiring 90d' =
+			CALCULATE (
+			    DISTINCTCOUNT ( Inventory[Batch] ),
+			    Inventory[Days To Expiry] >= 0,
+			    Inventory[Days To Expiry] <= 90
+			) + 0
+		formatString: #,0
+		displayFolder: Expiry
+		lineageTag: e79475ec-7913-579e-80ff-c307eccd881a
+
+	measure 'Value Expiring 90d' =
+			CALCULATE (
+			    [Total Stock Value],
+			    Inventory[Days To Expiry] >= 0,
+			    Inventory[Days To Expiry] <= 90
+			) + 0
+		formatString: $#,0
+		displayFolder: Expiry
+		lineageTag: e61e71cb-12c3-50b7-ae01-6a1303018936
+
+	measure 'Value Expired' =
+			CALCULATE ( [Total Stock Value], Inventory[Days To Expiry] < 0 ) + 0
+		formatString: $#,0
+		displayFolder: Expiry
+		lineageTag: ffe31158-a89d-5419-926c-4c054b6d0167
+
+	measure 'Units At Risk' =
+			CALCULATE ( SUM ( Inventory[Quantity] ), Inventory[Days To Expiry] <= 90 )
+		formatString: #,0
+		displayFolder: Expiry
+		lineageTag: d0afd6cc-1eb8-5974-a0af-7ffad2019ab9
+
+	measure 'Batches At Risk' =
+			CALCULATE ( DISTINCTCOUNT ( Inventory[Batch] ), Inventory[Days To Expiry] <= 90 )
+		formatString: #,0
+		displayFolder: Expiry
+		lineageTag: 680663b4-ebee-5140-adcd-1b544feb1e09
+
+	measure 'Capacity In Scope' =
+			SUMX (
+			    FILTER ( VALUES ( Warehouses[Warehouse ID] ), CALCULATE ( NOT ISEMPTY ( Inventory ) ) ),
+			    CALCULATE ( MAX ( Warehouses[Capacity Units] ) )
+			)
+		formatString: #,0
+		displayFolder: Capacity
+		lineageTag: 124d186a-cfd4-5abf-b27b-5d6bc382427e
+
+	measure 'Network Utilisation' =
+			DIVIDE ( [On Hand Units], [Capacity In Scope] )
+		formatString: 0.0%
+		displayFolder: Capacity
+		lineageTag: 57e36a93-5dba-5f8c-9cdf-f44c8bac303a
+
+	measure 'Gauge Max' =
+			1
+		formatString: 0%
+		displayFolder: Capacity
+		lineageTag: 665d6c20-8668-5aa8-a471-41a3475060b9
+
+	measure 'Gauge Warning' =
+			0.9
+		formatString: 0%
+		displayFolder: Capacity
+		lineageTag: a1f0eac9-899a-58c5-a0a3-3c48481824fa
+
+	column 'Inventory ID'
+		dataType: string
+		isHidden
+		lineageTag: d3f9f25a-6123-5c75-9844-1c3f2467639a
+		summarizeBy: none
+		sourceColumn: Inventory ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Product ID'
+		dataType: string
+		isHidden
+		lineageTag: 36e52d1c-caa6-5e2e-85eb-bd0f3747a5b3
+		summarizeBy: none
+		sourceColumn: Product ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Warehouse ID'
+		dataType: string
+		isHidden
+		lineageTag: 5c8def46-bf71-51bd-9051-79d32760ffa4
+		summarizeBy: none
+		sourceColumn: Warehouse ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Batch
+		dataType: string
+		lineageTag: af0a2a20-e392-5b77-921e-68e1dd99c953
+		summarizeBy: none
+		sourceColumn: Batch
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		formatString: #,0
+		lineageTag: a4d0a69b-39c4-5c8a-a642-4a31536da190
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expiry Date'
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: ad9e3002-5d14-51b3-b8ca-07860c629694
+		summarizeBy: none
+		sourceColumn: Expiry Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Updated'
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		isHidden
+		lineageTag: e5e311b8-bb82-5172-9571-995d2a34969f
+		summarizeBy: none
+		sourceColumn: Last Updated
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Days To Expiry'
+		dataType: int64
+		formatString: 0
+		lineageTag: c39b46d1-0b6a-592a-b35e-4031169e8e1a
+		summarizeBy: none
+		sourceColumn: Days To Expiry
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expiry Risk'
+		dataType: string
+		lineageTag: 85eddd13-3aa8-5b0c-a58d-993521728880
+		summarizeBy: none
+		sourceColumn: Expiry Risk
+		sortByColumn: 'Risk Order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Risk Order'
+		dataType: int64
+		isHidden
+		lineageTag: c8846d64-374d-52e0-9963-b6c9594e8731
+		summarizeBy: none
+		sourceColumn: Risk Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Usable Quantity'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 4e63e419-1e74-56e8-96f6-94bbf63f5fe7
+		summarizeBy: sum
+		sourceColumn: Usable Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Stock Value' = Inventory[Quantity] * RELATED ( Products[Unit Cost] )
+		dataType: double
+		formatString: $#,0.00
+		lineageTag: c24d5b53-f86c-5352-9ba8-cb9234d45113
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Inventory = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(Binary.Decompress(Binary.FromText("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", BinaryEncoding.Base64), Compression.Deflate), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Renamed = Table.RenameColumns(Promoted, {{"inventory_id", "Inventory ID"}, {"product_id", "Product ID"}, {"warehouse_id", "Warehouse ID"}, {"batch_number", "Batch"}, {"quantity", "Quantity"}, {"expiry_date", "Expiry Date"}, {"last_updated", "Last Updated"}}),
+				    Typed = Table.TransformColumnTypes(Renamed, {{"Inventory ID", type text}, {"Product ID", type text}, {"Warehouse ID", type text}, {"Batch", type text}, {"Quantity", Int64.Type}, {"Expiry Date", type date}, {"Last Updated", type date}}, "en-US"),
+				    DaysToExpiry = Table.AddColumn(Typed, "Days To Expiry", each Duration.Days([Expiry Date] - [Last Updated]), Int64.Type),
+				    Risk = Table.AddColumn(DaysToExpiry, "Expiry Risk", each if [Days To Expiry] < 0 then "Expired" else if [Days To Expiry] <= 30 then "Within 30 days" else if [Days To Expiry] <= 90 then "31-90 days" else "Over 90 days", type text),
+				    RiskOrder = Table.AddColumn(Risk, "Risk Order", each if [Days To Expiry] < 0 then 1 else if [Days To Expiry] <= 30 then 2 else if [Days To Expiry] <= 90 then 3 else 4, Int64.Type),
+				    Usable = Table.AddColumn(RiskOrder, "Usable Quantity", each if [Days To Expiry] < 0 then 0 else [Quantity], Int64.Type)
+				in
+				    Usable
+
+	annotation PBI_ResultType = Table
+

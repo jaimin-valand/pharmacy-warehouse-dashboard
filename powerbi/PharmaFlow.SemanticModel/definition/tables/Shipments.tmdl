@@ -1,0 +1,115 @@
+table Shipments
+	lineageTag: 20207e10-c66b-5c7b-9d10-f77486fc29c3
+
+	measure 'Inbound Units' =
+			SUM ( Shipments[Quantity] )
+		formatString: #,0
+		lineageTag: 75b16ed0-0cfd-53c6-a99b-814a11883da6
+
+	measure Receipts =
+			COUNTROWS ( Shipments )
+		formatString: #,0
+		lineageTag: bba95884-fe33-50c6-8805-eeb91b92f847
+
+	measure 'On-Time Delivery' =
+			AVERAGE ( Shipments[On Time Flag] )
+		formatString: 0.0%
+		lineageTag: 538f11bb-938b-5a5d-9f81-f19131721d4e
+
+	column 'Shipment ID'
+		dataType: string
+		isHidden
+		lineageTag: 3cfac608-a7a9-5fbb-aa73-ecb784d52534
+		summarizeBy: none
+		sourceColumn: Shipment ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Supplier ID'
+		dataType: string
+		isHidden
+		lineageTag: 29debb23-dbf3-532e-b207-ade0a003634e
+		summarizeBy: none
+		sourceColumn: Supplier ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Product ID'
+		dataType: string
+		isHidden
+		lineageTag: 9d35e73c-608f-553e-91a6-b696b7147b43
+		summarizeBy: none
+		sourceColumn: Product ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Warehouse ID'
+		dataType: string
+		isHidden
+		lineageTag: 0cffbc15-0faa-53d4-ac6a-2c87f4d170db
+		summarizeBy: none
+		sourceColumn: Warehouse ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Date'
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 0ca3745a-fe3b-5894-b48a-86498eaa446d
+		summarizeBy: none
+		sourceColumn: Order Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expected Delivery'
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: cd679509-67e4-53f2-bec1-d553416c3cac
+		summarizeBy: none
+		sourceColumn: Expected Delivery
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Actual Delivery'
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 92540171-fe0e-5344-8a91-d62c40aba363
+		summarizeBy: none
+		sourceColumn: Actual Delivery
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		formatString: #,0
+		lineageTag: 89830f3b-229a-5038-a2b7-655704bf6f5a
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'On Time Flag'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 4d7d54bf-1fdf-5fd9-a871-d60d2480f206
+		summarizeBy: sum
+		sourceColumn: On Time Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Shipments = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(Binary.Decompress(Binary.FromText("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", BinaryEncoding.Base64), Compression.Deflate), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Renamed = Table.RenameColumns(Promoted, {{"shipment_id", "Shipment ID"}, {"supplier_id", "Supplier ID"}, {"product_id", "Product ID"}, {"warehouse_id", "Warehouse ID"}, {"order_date", "Order Date"}, {"expected_delivery", "Expected Delivery"}, {"actual_delivery", "Actual Delivery"}, {"quantity", "Quantity"}, {"on_time", "On Time"}}),
+				    Typed = Table.TransformColumnTypes(Renamed, {{"Shipment ID", type text}, {"Supplier ID", type text}, {"Product ID", type text}, {"Warehouse ID", type text}, {"Order Date", type date}, {"Expected Delivery", type date}, {"Actual Delivery", type date}, {"Quantity", Int64.Type}}, "en-US"),
+				    Flag = Table.AddColumn(Typed, "On Time Flag", each if Text.Lower([On Time]) = "true" then 1 else 0, Int64.Type),
+				    Clean = Table.RemoveColumns(Flag, {"On Time"})
+				in
+				    Clean
+
+	annotation PBI_ResultType = Table
+
