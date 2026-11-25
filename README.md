@@ -10,7 +10,11 @@ Pharmacy warehouse teams must keep essential medicines available without letting
 
 ## Power BI version
 
-The same dashboard is also built in Power BI, in the [`powerbi`](powerbi/) folder, as a Power BI Project (`.pbip`). It has the same data, a linked data model and DAX measures that reproduce every KPI in the Python app. Open `powerbi/PharmaFlow.pbip` in Power BI Desktop (Windows) and click Refresh. The data is embedded, so there is nothing to connect.
+The same dashboard is also built in Power BI, in the [`powerbi`](powerbi/) folder. It has the same data, a linked data model and DAX measures that reproduce every KPI in the Python app.
+
+To run it: download this repo (**Code > Download ZIP**), open `powerbi/PharmaFlow.pbip` in Power BI Desktop on Windows, and click **Refresh**. The data is built in, so there's nothing to connect. Full steps are in the [Power BI guide](powerbi/README.md).
+
+Learning Power BI? Feel free to use it for practice: explore the DAX, the Power Query steps and the model, then rebuild the visuals or add your own measures. The guide has ideas to get you started.
 
 ## Features
 
