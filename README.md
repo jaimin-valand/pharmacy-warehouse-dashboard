@@ -35,7 +35,7 @@ Python, Streamlit, Plotly, pandas, NumPy, CSV
 
 ## Setup and run
 
-Python 3.10 or newer is recommended.
+Python 3.11 or newer is recommended (works with pandas 2.2+ and pandas 3).
 
 ```bash
 git clone https://github.com/jaimin-valand/pharmacy-warehouse-dashboard.git
@@ -46,7 +46,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-The app builds the synthetic dataset on first run if the `data/` folder is missing, so it also deploys to Streamlit Community Cloud with no extra steps. You can still regenerate it any time with `python generate_data.py`.
+The app builds the synthetic dataset on first run if the `data/` folder is missing, so it also deploys to Streamlit Community Cloud with no extra steps. Dates in the sample data are relative to today, so the app rebuilds the data once a day to keep expiry dates and order history current on a long-running deploy. You can still regenerate it any time with `python generate_data.py`.
 
 Run the tests with:
 
@@ -55,7 +55,7 @@ pip install pytest
 pytest -q
 ```
 
-The dashboard opens in your browser at the URL printed in the terminal. The generator uses a fixed random seed (2026), so the sample data is reproducible.
+The dashboard opens in your browser at the URL printed in the terminal. The generator uses a fixed random seed (2026), so the sample data is reproducible for any given day.
 
 ## Data note
 

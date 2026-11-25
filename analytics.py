@@ -7,6 +7,21 @@ import pandas as pd
 RISK_ORDER = ["Expired", "≤30 days", "31–90 days"]
 
 
+def date_range_bounds(selected, max_date):
+    """Turn the sidebar date_input value into (start, end) timestamps.
+
+    While the user is picking a range, Streamlit returns only the first date
+    (a 1-item tuple). In that case show everything from that date onwards.
+    """
+    if isinstance(selected, (tuple, list)):
+        if len(selected) >= 2:
+            return pd.Timestamp(selected[0]), pd.Timestamp(selected[1])
+        if len(selected) == 1:
+            return pd.Timestamp(selected[0]), pd.Timestamp(max_date)
+        return pd.Timestamp(max_date), pd.Timestamp(max_date)
+    return pd.Timestamp(selected), pd.Timestamp(selected)
+
+
 def classify_expiry(days_to_expiry):
     """Bucket days-to-expiry into risk bands. Anything beyond 90 days is 'OK'."""
     days = pd.Series(days_to_expiry)

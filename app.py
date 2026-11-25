@@ -5,8 +5,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from analytics import RISK_ORDER, add_inventory_measures, low_stock_report, value_at_risk
-from generate_data import generate_data
+from analytics import RISK_ORDER, add_inventory_measures, date_range_bounds, low_stock_report, value_at_risk
+from generate_data import data_is_current, generate_data
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -26,10 +26,12 @@ REQUIRED_TABLES = ["products", "inventory", "orders", "shipments", "suppliers", 
 
 
 @st.cache_data(show_spinner="Loading warehouse data...")
-def load_data():
+def load_data(as_of):
+    """Load the CSVs. `as_of` (today's date) is part of the cache key, so the data is
+    rebuilt once a day and expiry dates and order history stay relative to today."""
     required = REQUIRED_TABLES
-    if any(not (DATA_DIR / f"{name}.csv").exists() for name in required):
-        # First run (or a fresh cloud deploy): build the synthetic dataset automatically.
+    if not data_is_current(DATA_DIR, as_of, required):
+        # First run, a fresh cloud deploy, or data generated on an earlier day.
         generate_data(DATA_DIR)
 
     data = {name: pd.read_csv(DATA_DIR / f"{name}.csv") for name in required}
@@ -77,7 +79,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    data = load_data()
+    data = load_data(pd.Timestamp.today().date().isoformat())
     products = data["products"]
     inventory = data["inventory"].merge(products, on="product_id", how="left")
     inventory = inventory.merge(data["warehouses"], on="warehouse_id", how="left")
@@ -94,10 +96,7 @@ def main():
     min_date = min(orders["order_date"].min(), shipments["order_date"].min()).date()
     max_date = max(orders["order_date"].max(), shipments["order_date"].max()).date()
     selected_dates = st.sidebar.date_input("Activity date range", value=(min_date, max_date), min_value=min_date, max_value=max_date)
-    if isinstance(selected_dates, (tuple, list)) and len(selected_dates) == 2:
-        start_date, end_date = map(pd.Timestamp, selected_dates)
-    else:
-        start_date = end_date = pd.Timestamp(selected_dates)
+    start_date, end_date = date_range_bounds(selected_dates, max_date)
     st.sidebar.divider()
     st.sidebar.caption("All dashboard data is synthetic and generated for demonstration.")
 
