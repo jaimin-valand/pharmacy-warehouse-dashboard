@@ -9,3 +9,5 @@ venv/
 .DS_Store
 
 data/*.csv
+**/.pbi/localSettings.json
+**/.pbi/cache.abf

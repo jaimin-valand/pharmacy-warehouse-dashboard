@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "PharmaFlow"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "adf35c5c-e2cc-5ac2-b4c4-9f2b49d5c282"
+  }
+}

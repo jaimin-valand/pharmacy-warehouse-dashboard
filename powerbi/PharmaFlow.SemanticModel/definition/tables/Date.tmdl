@@ -1,0 +1,36 @@
+table Date
+	lineageTag: 93d577ed-f761-58f6-96c6-e385da95748d
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: dd mmm yyyy
+		lineageTag: 92e99e6e-7b04-5fc9-8f81-2b79b8a026a8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Start' = DATE ( YEAR ( 'Date'[Date] ), MONTH ( 'Date'[Date] ), 1 )
+		dataType: dateTime
+		formatString: mmm yyyy
+		isHidden
+		lineageTag: 259dcbc1-3a1c-5f40-8439-29702b722904
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month = FORMAT ( 'Date'[Date], "mmm yyyy" )
+		dataType: string
+		lineageTag: e85d4cf1-97ec-53b5-ad8d-25dc6cfacd3f
+		summarizeBy: none
+		sortByColumn: 'Month Start'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Date = calculated
+		mode: import
+		source = CALENDAR ( MIN ( MIN ( Orders[Order Date] ), MIN ( Shipments[Order Date] ) ), MAX ( MAX ( Orders[Order Date] ), MAX ( Shipments[Order Date] ) ) )
+

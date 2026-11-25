@@ -8,6 +8,10 @@ An interactive analytics dashboard for a multi-warehouse pharmacy supply network
 
 Pharmacy warehouse teams must keep essential medicines available without letting excess or short-dated stock tie up capital or become waste. Stock, batch expiry, supplier reliability and demand signals are often spread across operational exports. PharmaFlow brings those signals into one view so a team can spot replenishment needs, prioritise expiry risk, compare supplier service and balance warehouse capacity before service levels are affected.
 
+## Power BI version
+
+The same dashboard is also built in Power BI, in the [`powerbi`](powerbi/) folder, as a Power BI Project (`.pbip`). It has the same data, a linked data model and DAX measures that reproduce every KPI in the Python app. Open `powerbi/PharmaFlow.pbip` in Power BI Desktop (Windows) and click Refresh. The data is embedded, so there is nothing to connect.
+
 ## Features
 
 - Sidebar filters for warehouse, therapeutic category and activity date range.
@@ -67,6 +71,10 @@ The dashboard opens in your browser at the URL printed in the terminal. The gene
 pharmacy-warehouse-dashboard/
 ├── .streamlit/config.toml
 ├── .github/workflows/tests.yml
+├── powerbi/                  # Power BI version (open PharmaFlow.pbip)
+│   ├── PharmaFlow.Report/
+│   ├── PharmaFlow.SemanticModel/
+│   └── PharmaFlow.pbip
 ├── tests/
 │   ├── test_analytics.py
 │   └── test_generate_data.py

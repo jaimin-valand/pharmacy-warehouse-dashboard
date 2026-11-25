@@ -1,0 +1,50 @@
+table Warehouses
+	lineageTag: 9e0f83fe-d3c6-5db6-9b6a-8ba52d9b9364
+
+	column 'Warehouse ID'
+		dataType: string
+		isHidden
+		lineageTag: d239a8e3-c878-56fb-8749-7973063bf43a
+		summarizeBy: none
+		sourceColumn: Warehouse ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Warehouse
+		dataType: string
+		lineageTag: 910e1539-fe9c-594b-9dcf-c95cb3691bf2
+		summarizeBy: none
+		sourceColumn: Warehouse
+
+		annotation SummarizationSetBy = Automatic
+
+	column Location
+		dataType: string
+		lineageTag: 6f75ff65-6274-5cf0-a74b-227e17d561f7
+		summarizeBy: none
+		sourceColumn: Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Capacity Units'
+		dataType: int64
+		formatString: #,0
+		lineageTag: e70502c9-9703-5383-8d26-bff0025c7464
+		summarizeBy: none
+		sourceColumn: Capacity Units
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Warehouses = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(Binary.Decompress(Binary.FromText("Vc7BCsIwDIDhu09Reo4wt4kP0AnDwwQV521kM7Bi18jaMnx7u6GCPQQCX3464Ug9B0eNvsP0WywOBIY79JotdPjETvtXE6z2blWX62QDe3ReKJ5noUBWFK8fIKqDhCyJb2EpKLJ+RLMYxSYMbXAgjqWEdLf9qAxq+oudyHJMXSPKv6kczhx8Lwrt/KjbMP9MlKEFWaAxGKOXW/Tp7N8=", BinaryEncoding.Base64), Compression.Deflate), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Renamed = Table.RenameColumns(Promoted, {{"warehouse_id", "Warehouse ID"}, {"warehouse_name", "Warehouse"}, {"location", "Location"}, {"capacity_units", "Capacity Units"}}),
+				    Typed = Table.TransformColumnTypes(Renamed, {{"Warehouse ID", type text}, {"Warehouse", type text}, {"Location", type text}, {"Capacity Units", Int64.Type}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

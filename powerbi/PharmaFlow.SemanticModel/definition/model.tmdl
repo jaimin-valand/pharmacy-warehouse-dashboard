@@ -1,0 +1,22 @@
+model Model
+	culture: en-GB
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-GB
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Products", "Warehouses", "Suppliers", "Inventory", "Orders", "Shipments"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Products
+ref table Warehouses
+ref table Suppliers
+ref table Inventory
+ref table Orders
+ref table Shipments
+ref table Date
