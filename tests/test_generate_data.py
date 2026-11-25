@@ -1,6 +1,6 @@
 import pandas as pd
 
-from generate_data import generate_data
+from generate_data import data_is_current, generate_data
 
 
 def test_generate_data_creates_expected_synthetic_dimensions(tmp_path):
@@ -30,3 +30,12 @@ def test_generator_is_reproducible_for_same_seed(tmp_path):
 
     for filename in ("products.csv", "inventory.csv", "orders.csv", "shipments.csv"):
         assert (first / filename).read_bytes() == (second / filename).read_bytes()
+
+
+def test_data_is_current_detects_missing_and_stale_data(tmp_path):
+    assert not data_is_current(tmp_path)
+    generate_data(tmp_path, seed=1)
+    today = pd.Timestamp.today().date().isoformat()
+    assert data_is_current(tmp_path, today)
+    # Data generated on an earlier day must be rebuilt so dates stay relative to today.
+    assert not data_is_current(tmp_path, "2000-01-01")

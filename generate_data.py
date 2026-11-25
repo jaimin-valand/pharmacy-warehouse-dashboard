@@ -50,6 +50,26 @@ WAREHOUSES = [
 ]
 
 
+TABLES = ["products", "inventory", "orders", "shipments", "suppliers", "warehouses"]
+
+
+def data_is_current(data_dir=DATA_DIR, as_of=None, tables=TABLES):
+    """True if every CSV exists and the data was generated on `as_of` (ISO date).
+
+    Dates in the sample data are relative to the day it was generated, so data
+    left over from an earlier day would slowly drift into the past.
+    """
+    data_dir = Path(data_dir)
+    if any(not (data_dir / f"{name}.csv").exists() for name in tables):
+        return False
+    as_of = as_of or pd.Timestamp.today().date().isoformat()
+    try:
+        stamp = pd.read_csv(data_dir / "inventory.csv", usecols=["last_updated"], nrows=1)["last_updated"]
+    except (ValueError, pd.errors.EmptyDataError):
+        return False
+    return not stamp.empty and str(stamp.iloc[0]) == as_of
+
+
 def generate_data(output_dir=DATA_DIR, seed=2026):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
